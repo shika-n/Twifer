@@ -10,11 +10,13 @@
     "lint:js": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "lint": "npm run lint:js",
     "lintfix": "eslint --fix --ext .js,.vue --ignore-path .gitignore ."
-  
   },
   "dependencies": {
     "@nuxtjs/axios": "^5.11.0",
-    "nuxt": "^2.13.0"
+    "cookie-parser": "^1.4.5",
+    "mysql": "^2.18.1",
+    "nuxt": "^2.13.0",
+    "oauth": "^0.9.15"
   },
   "devDependencies": {
     "@nuxtjs/eslint-config": "^3.0.0",
