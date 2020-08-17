@@ -13,7 +13,7 @@
       </v-btn>
       <v-toolbar-title>
         <strong class="primary--text">
-          TwiFT
+          Twifer
         </strong>
       </v-toolbar-title>
       <v-spacer></v-spacer>

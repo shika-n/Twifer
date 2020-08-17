@@ -1,5 +1,8 @@
-# TwiFT
-token.json
+# Twifer
+appConfig.json
+
+# VS Code
+/.vscode
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Node template

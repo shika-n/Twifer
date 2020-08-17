@@ -1,40 +1,39 @@
-import { stringify } from 'querystring';
-
-const mysql = require('mysql');
+const mongodb = require('mongodb');
 const util = require('util');
 const fs = require('fs');
 const oauth = require('oauth');
 
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'twift',
-});
+let appConfig = null;
+let db = null;
 
-db.connect(function(err) {
-    if (err) {
-        throw err;
-    }
-    console.log('Connected to DB!');
-});
+fs.readFile('appConfig.json', 'utf8', function (err, contents) {
+    console.log('Config GET!');
+    appConfig = JSON.parse(contents);
 
-db.promiseQuery = util.promisify(db.query);
+    const mongoClient = mongodb.MongoClient(
+        `mongodb://${appConfig.db.user}:${appConfig.db.pwd}@${appConfig.db.host}:${appConfig.db.port}`,
+        {
+            useUnifiedTopology: true
+        }
+    );
+    mongoClient.connect(function (err, client) {
+        if (err) {
+            console.log("Failed to connect to DB");
+        }
 
-let appToken = null
-fs.readFile('token.json', 'utf8', function (err, contents) {
-    console.log("Token GET!");
-    appToken = JSON.parse(contents);
+        console.log('DB Connected!');
+        db = client.db(appConfig.db.name);
+    });
 });
 
 function oAuthConsumer() {
-    console.log(appToken.consumerToken);
-    console.log(appToken.consumerSecret);
+    console.log('ConsumerToken: ' + appConfig.consumer.token);
+    console.log('ConsumerSecret: ' + appConfig.consumer.secret);
     return new oauth.OAuth(
         'https://api.twitter.com/oauth/request_token',
         'https://twitter.com/oauth/access_token',
-        appToken.consumerToken,
-        appToken.consumerSecret,
+        appConfig.consumer.token,
+        appConfig.consumer.secret,
         '1.0A',
         'http://localhost:3000/api/twitter/callback',
         'HMAC-SHA1'
@@ -55,10 +54,10 @@ export default function (req, res, next) {
         }
 
         req.params = getParams(req.url);
-        db.defQuery = defQuery
         req.db = db;
-        req.appToken = appToken;
-        req.oAuthConsumer = oAuthConsumer();
+        req.defQuery = defQuery;
+        req.appToken = appConfig.consumer;
+        req.oAuthConsumer = oAuthConsumer;
         
         next();
     });
@@ -80,12 +79,12 @@ function getParams(url) {
     return params;
 }
 
-async function defQuery(sqlQuery) {
+async function defQuery(collection, query) {
     try {
-        const result = await db.promiseQuery(sqlQuery);
+        const result = await db.collection(collection).find(query).toArray();
 
         return JSON.stringify(result, null, '\t');
     } catch (err) {
-        return err;
+        return util.inspect(err);
     }
 }

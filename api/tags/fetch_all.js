@@ -1,8 +1,5 @@
-export default function (req, res, next) {
-    req.db.defQuery(
-        'SELECT * \
-        FROM tags'
-    ).then((result) => {
-        res.end(result);
-    });
+export default async function (req, res, next) {
+    console.log('tags fetch all');
+    const result = await req.defQuery('tags', {});
+    res.end(result);
 }
