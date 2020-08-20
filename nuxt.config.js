@@ -89,5 +89,7 @@ export default {
     { path: '/api/twitter/callback', handler: '~/api/twitter/callback.js' },
 
     { path: '/api/tags/fetch_all', handler: '~/api/tags/fetch_all.js'},
+
+    { path: '/api/session/clean_up', handler: '~/api/session/clean_up.js' }
   ]
 }
