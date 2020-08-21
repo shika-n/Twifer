@@ -88,7 +88,7 @@ async function getNewToken(req, res) {
 		res.writeHead(
 			200,
 			{
-				'Set-Cookie': `sessionId=${newToken}; Path=/`
+				'Set-Cookie': `sessionId=${newToken}; Path=/; HttpOnly`
 			}
 		)
 	} else {
@@ -109,7 +109,7 @@ async function getNewToken(req, res) {
 			res.writeHead(
 				200,
 				{
-					'Set-Cookie': `sessionId=${newToken}; Path=/`
+					'Set-Cookie': `sessionId=${newToken}; Path=/; HttpOnly`
 				}
 			)
 		}
