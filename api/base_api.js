@@ -1,5 +1,4 @@
 const cookie = require('cookie');
-const crypto = require('crypto');
 const fs = require('fs');
 const mongodb = require('mongodb');
 const oauth = require('oauth');
@@ -34,8 +33,6 @@ fs.readFile('appConfig.json', 'utf8', function (err, contents) {
 });
 
 function oAuthConsumer() {
-	console.log('ConsumerToken: ' + appConfig.consumer.token);
-	console.log('ConsumerSecret: ' + appConfig.consumer.secret);
 	return new oauth.OAuth(
 		'https://api.twitter.com/oauth/request_token',
 		'https://twitter.com/oauth/access_token',
@@ -71,47 +68,10 @@ export default function (req, res, next) {
 		req.appToken = appConfig.consumer;
 		req.oAuthConsumer = oAuthConsumer;
 
-		getNewToken(req, res).then(() => {
+		Sessions.checkSession(req, res).then(() => {
 			next();
 		}).catch((err) => {
 			res.end(util.inspect(err));
 		});
 	});
-}
-
-async function getNewToken(req, res) {
-	const newToken = crypto.createHash('sha256').update(`${req.ip}-${Date.now()}`).digest('hex');
-	console.log('Cookies: ' + util.inspect(req.cookies));
-	if (req.cookies === undefined || req.cookies.sessionId === undefined || req.cookies.sessionId == '') {
-		await Sessions.insertNew(req.db, newToken, req.ip);
-		
-		res.writeHead(
-			200,
-			{
-				'Set-Cookie': `sessionId=${newToken}; Path=/; HttpOnly`
-			}
-		)
-	} else {
-		const session = await Sessions.find(req.db, req.cookies.sessionId, req.ip);
-		console.log('Found session: ' + util.inspect(session));
-
-		if (session == null) {
-			res.writeHead(
-				401,
-				{
-					'Set-Cookie': 'sessionId=; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-				}
-			)
-			throw 'Unauthorized';
-		} else {
-			await Sessions.renewToken(req.db, session, newToken);
-
-			res.writeHead(
-				200,
-				{
-					'Set-Cookie': `sessionId=${newToken}; Path=/; HttpOnly`
-				}
-			)
-		}
-	}
 }
