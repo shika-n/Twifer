@@ -1,0 +1,13 @@
+{
+	"db": {
+		"host": "",
+		"port": 0,
+		"name": "",
+		"user": "",
+		"pwd": ""
+	},
+	"consumer": {
+		"token": "",
+		"secret": ""
+	}
+}
