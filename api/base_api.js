@@ -10,6 +10,7 @@ const Sessions = require('./models/sessions');
 
 let appConfig = null;
 let db = null;
+let oAuthConsumer = null;
 
 fs.readFile('app_config.json', 'utf8', function (err, contents) {
 	console.log('Config GET!');
@@ -30,9 +31,11 @@ fs.readFile('app_config.json', 'utf8', function (err, contents) {
 		db = client.db(appConfig.db.name);
 		console.log(`DB Connected! (${appConfig.db.name})`);
 	});
+
+	oAuthConsumer = newOAuthConsumer();
 });
 
-function oAuthConsumer() {
+function newOAuthConsumer() {
 	return new oauth.OAuth(
 		'https://api.twitter.com/oauth/request_token',
 		'https://twitter.com/oauth/access_token',
@@ -45,6 +48,11 @@ function oAuthConsumer() {
 }
 
 export default function (req, res, next) {
+	if (oAuthConsumer == null) {
+		res.end('OAuthConsumer is not ready yet. Please try again later.');
+		return;
+	}
+
 	const { headers, method, url } = req;
 	let body = [];
 	req.on('data', (chunk) => {
@@ -70,7 +78,6 @@ export default function (req, res, next) {
 		req.oAuthConsumer = oAuthConsumer;
 
 		Sessions.checkSession(req, res).then((value) => {
-			console.log(`CHECKSESSIONVALUE: ${value}`);
 			if (value == 1) {
 				next();
 			}

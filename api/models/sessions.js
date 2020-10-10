@@ -57,15 +57,43 @@ class Sessions {
 		});
 	}
 
-	static async renewToken(db, session, sessionId) {
+	static async renewToken(db, session, newSessionId) {
 		const result = await this.collection(db).updateOne(
 			{
 				_id: session._id
 			},
 			{
 				$set: {
-					sessionId: sessionId,
+					sessionId: newSessionId,
 					date: Date.now()
+				}
+			}
+		);
+	}
+
+	static async insertRequestToken(db, sessionId, requestToken, requestSecret) {
+		const result = await Sessions.collection(db).updateOne(
+			{
+				sessionId: sessionId
+			},
+			{
+				$set: {
+					requestToken: requestToken,
+					requestSecret: requestSecret,
+				}
+			}
+		);
+	}
+
+	static async insertAccessToken(db, sessionId, accessToken, accessSecret) {
+		const result = await Sessions.collection(db).updateOne(
+			{
+				sessionId: sessionId
+			},
+			{
+				$set: {
+					accessToken: accessToken,
+					accessSecret: accessSecret,
 				}
 			}
 		);
@@ -94,15 +122,15 @@ class Sessions {
 			await this.renewToken(req.db, session, newSessionId);
 			this.setCookie(res, newSessionId);
 
-			// TODO: Change condition to check if there is a twitter credential
-			// associated with the session
-			if (session != null) {
+			if (session.accessToken != undefined && session.accessSecret != undefined) {
 				isGuest = false;
 			}
 		} else {
 			await this.insertNew(req.db, newSessionId, req.ip);
 			this.setCookie(res, newSessionId);
 		}
+
+		req.newSessionId = newSessionId;
 
 		if (isGuest) {
 			const isAllowed = ALWAYS_ALLOW_PATHS.indexOf(req.pathName) > -1 || GUEST_ONLY_PATHS.indexOf(req.pathName) > -1;
