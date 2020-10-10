@@ -3,6 +3,13 @@ const util = require('util');
 
 const SESSION_LIFETIME = (1000 * 60) * 30; // 30 minutes
 
+const ALWAYS_ALLOW_PATHS = [
+]
+const GUEST_ONLY_PATHS = [
+	'/twitter/auth',
+	'/twitter/callback',
+]
+
 class Sessions {
 	static collection(db) {
 		return db.collection('sessions');
@@ -13,7 +20,7 @@ class Sessions {
 			sessionId: sessionId
 		}).toArray();
 
-		if (result.length == 1 && result.ip == db.ip) {
+		if (result.length == 1 && result[0].ip == ip) {
 			const session = result[0];
 
 			if (Date.now() - session.date > SESSION_LIFETIME) {
@@ -75,9 +82,6 @@ class Sessions {
 
 	static async checkSession(req, res) {
 		const newSessionId = crypto.createHash('sha256').update(`${req.ip}-${Date.now()}`).digest('hex');
-
-		const authPage = req.url === '/test';
-
 		const cookieExist = req.cookies !== undefined && req.cookies.sessionId !== undefined && req.cookies.sessionId != '';
 
 		let session = null;
@@ -85,41 +89,50 @@ class Sessions {
 			session = await this.find(req.db, req.cookies.sessionId, req.ip);
 		}
 
-		if (authPage) {
+		let isGuest = true;
+		if (session != null) {
+			await this.renewToken(req.db, session, newSessionId);
+			this.setCookie(res, newSessionId);
+
+			// TODO: Change condition to check if there is a twitter credential
+			// associated with the session
 			if (session != null) {
-				await this.renewToken(req.db, session, newSessionId);
-				this.setCookie(res, newSessionId);
-			} else {
-				await this.insertNew(req.db, newSessionId, req.ip);
-				this.setCookie(res, newSessionId);
+				isGuest = false;
 			}
 		} else {
-			if (session != null) {
-				await this.renewToken(req.db, session, newSessionId);
-				this.setCookie(res, newSessionId);
-			} else {
-				this.deleteCookie();
+			await this.insertNew(req.db, newSessionId, req.ip);
+			this.setCookie(res, newSessionId);
+		}
+
+		if (isGuest) {
+			const isAllowed = ALWAYS_ALLOW_PATHS.indexOf(req.pathName) > -1 || GUEST_ONLY_PATHS.indexOf(req.pathName) > -1;
+
+			if (!isAllowed) {
 				throw 'Unauthorized';
 			}
+		} else {
+			const isGuestOnly = GUEST_ONLY_PATHS.indexOf(req.pathName) > -1;
+
+			if (isGuestOnly) {
+				res.statusCode = 302;
+				res.setHeader('Location', `/`);
+				res.setHeader('Cache-Control', 'no-cache, no-store');
+				res.end();
+				return 0;
+			}
 		}
+
+		return 1;
 	}
 
 	static setCookie(res, newSessionId) {
-		res.writeHead(
-			200,
-			{
-				'Set-Cookie': `sessionId=${newSessionId}; Path=/; HttpOnly`
-			}
-		)
+		res.statusCode = 200;
+		res.setHeader('Set-Cookie', `sessionId=${newSessionId}; Path=/; HttpOnly`);
 	}
 
 	static deleteCookie(res) {
-		res.writeHead(
-			401,
-			{
-				'Set-Cookie': 'sessionId=; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
-			}
-		)
+		res.statusCode = 401;
+		res.setHeader('Set-Cookie', 'sessionId=; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT');
 	}
 }
 

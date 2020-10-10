@@ -11,7 +11,7 @@ const Sessions = require('./models/sessions');
 let appConfig = null;
 let db = null;
 
-fs.readFile('appConfig.json', 'utf8', function (err, contents) {
+fs.readFile('app_config.json', 'utf8', function (err, contents) {
 	console.log('Config GET!');
 	appConfig = JSON.parse(contents);
 
@@ -57,6 +57,7 @@ export default function (req, res, next) {
 			req.body = body;
 		}
 
+		req.pathName = urlUtil.parse(req.url, true).pathname;
 		req.params = urlUtil.parse(req.url, true).query;
 		req.ip = requestIp.getClientIp(req);
 		
@@ -68,8 +69,11 @@ export default function (req, res, next) {
 		req.appToken = appConfig.consumer;
 		req.oAuthConsumer = oAuthConsumer;
 
-		Sessions.checkSession(req, res).then(() => {
-			next();
+		Sessions.checkSession(req, res).then((value) => {
+			console.log(`CHECKSESSIONVALUE: ${value}`);
+			if (value == 1) {
+				next();
+			}
 		}).catch((err) => {
 			res.end(util.inspect(err));
 		});

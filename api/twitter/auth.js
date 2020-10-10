@@ -12,13 +12,9 @@ export default function (req, res, next) {
 			} else {
 				console.log('oAuthToken: ' + oAuthToken);
 				console.log('oAuthSecret: ' + oAuthSecret);
-				res.writeHeader(
-					302,
-					{
-						Location: `https://api.twitter.com/oauth/authorize?oauth_token=${oAuthToken}`,
-						"Cache-Control": "no-cache, no-store"
-					}
-				);
+				res.statusCode = 302;
+				res.setHeader('Location', `https://api.twitter.com/oauth/authorize?oauth_token=${oAuthToken}`);
+				res.setHeader('Cache-Control', 'no-cache, no-store');
 				res.end();
 			}
 		}
