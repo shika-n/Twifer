@@ -7,8 +7,8 @@
         icon
         @click.stop="drawerShrinked = !drawerShrinked"
       >
-        <v-icon>
-          mdi-{{ `chevron-${drawerShrinked ? 'right' : 'left'}` }}
+        <v-icon v-if="drawer">
+          mdi-{{ `chevron-${drawerShrinked ? "right" : "left"}` }}
         </v-icon>
       </v-btn>
       <v-toolbar-title>
@@ -48,6 +48,9 @@
     </v-navigation-drawer>
     <v-main>
       <v-container>
+        <v-btn v-if="loggedIn">
+          {{ loggedIn }}
+        </v-btn>
         <nuxt />
       </v-container>
     </v-main>
@@ -63,37 +66,39 @@ html {
 <script>
 export default {
   data() {
+    this.isLoggedIn();
     return {
-      drawer: true,
+      drawer: false,
       drawerShrinked: true,
       drawerItems: [
         {
-          icon: 'mdi-home',
-          text: 'Home',
-          to: '/',
+          icon: "mdi-home",
+          text: "Home",
+          to: "/",
         },
         {
-          icon: 'mdi-heart',
-          text: 'Favorites',
-          to: '/favorites',
+          icon: "mdi-heart",
+          text: "Favorites",
+          to: "/favorites",
         },
         {
-          icon: 'mdi-account-arrow-right',
-          text: 'Following',
-          to: '/following',
+          icon: "mdi-account-arrow-right",
+          text: "Following",
+          to: "/following",
         },
         {
-          icon: 'mdi-account-arrow-left',
-          text: 'Followers',
-          to: '/followers',
+          icon: "mdi-account-arrow-left",
+          text: "Followers",
+          to: "/followers",
         },
         {
-          icon: 'mdi-code-tags',
-          text: 'Dev',
-          to: '/color_test',
+          icon: "mdi-code-tags",
+          text: "Dev",
+          to: "/color_test",
         },
       ],
-    }
+      loggedIn: false,
+    };
   },
   methods: {
     isSmallDevice() {
@@ -101,10 +106,14 @@ export default {
         this.$vuetify.breakpoint.md ||
         this.$vuetify.breakpoint.sm ||
         this.$vuetify.breakpoint.xs
-      )
+      );
+    },
+    async isLoggedIn() {
+      const status = await this.$axios.$get("api/session/get_status");
+      this.loggedIn = status;
     },
   },
-}
+};
 </script>
 
 <!--

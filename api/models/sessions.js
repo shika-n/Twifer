@@ -1,18 +1,19 @@
-const crypto = require('crypto');
-const util = require('util');
+const crypto = require("crypto");
+const util = require("util");
 
 const SESSION_LIFETIME = (1000 * 60) * 30; // 30 minutes
 
 const ALWAYS_ALLOW_PATHS = [
+	"/session/get_status",
 ]
 const GUEST_ONLY_PATHS = [
-	'/twitter/auth',
-	'/twitter/callback',
+	"/twitter/auth",
+	"/twitter/callback",
 ]
 
 class Sessions {
 	static collection(db) {
-		return db.collection('sessions');
+		return db.collection("sessions");
 	}
 
 	static async find(db, sessionId, ip) {
@@ -34,10 +35,10 @@ class Sessions {
 			return result[0];
 		} else {
 			if (result.length == 1) {
-				console.log('IP does not match. Returning null.');
+				console.log("IP does not match. Returning null.");
 			} else {
 				const allSessions = await this.collection(db).find({}).toArray();
-				console.log('All Sessions: ' + util.inspect(allSessions));
+				console.log("All Sessions: " + util.inspect(allSessions));
 
 				console.log(`There are ${result.length} sessionIds found. Returning null.`);
 			}
@@ -109,8 +110,8 @@ class Sessions {
 	}
 
 	static async checkSession(req, res) {
-		const newSessionId = crypto.createHash('sha256').update(`${req.ip}-${Date.now()}`).digest('hex');
-		const cookieExist = req.cookies !== undefined && req.cookies.sessionId !== undefined && req.cookies.sessionId != '';
+		const newSessionId = crypto.createHash("sha256").update(`${req.ip}-${Date.now()}`).digest("hex");
+		const cookieExist = req.cookies !== undefined && req.cookies.sessionId !== undefined && req.cookies.sessionId != "";
 
 		let session = null;
 		if (cookieExist) {
@@ -136,15 +137,15 @@ class Sessions {
 			const isAllowed = ALWAYS_ALLOW_PATHS.indexOf(req.pathName) > -1 || GUEST_ONLY_PATHS.indexOf(req.pathName) > -1;
 
 			if (!isAllowed) {
-				throw 'Unauthorized';
+				throw "Unauthorized";
 			}
 		} else {
 			const isGuestOnly = GUEST_ONLY_PATHS.indexOf(req.pathName) > -1;
 
 			if (isGuestOnly) {
 				res.statusCode = 302;
-				res.setHeader('Location', `/`);
-				res.setHeader('Cache-Control', 'no-cache, no-store');
+				res.setHeader("Location", `/`);
+				res.setHeader("Cache-Control", "no-cache, no-store");
 				res.end();
 				return 0;
 			}
@@ -155,12 +156,12 @@ class Sessions {
 
 	static setCookie(res, newSessionId) {
 		res.statusCode = 200;
-		res.setHeader('Set-Cookie', `sessionId=${newSessionId}; Path=/; HttpOnly`);
+		res.setHeader("Set-Cookie", `sessionId=${newSessionId}; Path=/; HttpOnly`);
 	}
 
 	static deleteCookie(res) {
 		res.statusCode = 401;
-		res.setHeader('Set-Cookie', 'sessionId=; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT');
+		res.setHeader("Set-Cookie", "sessionId=; Path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
 	}
 }
 

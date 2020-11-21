@@ -11,7 +11,7 @@ export default {
   data() {
     return {
       notAuth: true,
-    }
+    };
   },
-}
+};
 </script>

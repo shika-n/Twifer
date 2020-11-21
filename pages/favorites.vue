@@ -11,9 +11,9 @@
           src="https://cdn.vuetifyjs.com/images/parallax/material2.jpg"
           aspect-ratio="1.78"
           @click="
-            imageDialog = true
+            imageDialog = true;
             imageDialogSrc =
-              'https://cdn.vuetifyjs.com/images/parallax/material2.jpg'
+              'https://cdn.vuetifyjs.com/images/parallax/material2.jpg';
           "
         >
           <div class="fill-height bottom-gradient" :class="`d-flex align-end`">
@@ -65,8 +65,8 @@ export default {
   data() {
     return {
       imageDialog: false,
-      imageDialogSrc: '',
-    }
+      imageDialogSrc: "",
+    };
   },
-}
+};
 </script>

@@ -1,5 +1,5 @@
-const util = require('util');
-const Sessions = require('../models/sessions');
+const util = require("util");
+const Sessions = require("../models/sessions");
 
 export default async function (req, res, next) {
 	const session = await Sessions.find(req.db, req.newSessionId, req.ip);
@@ -15,19 +15,19 @@ export default async function (req, res, next) {
 						await Sessions.insertAccessToken(req.db, req.newSessionId, accessToken, accessSecret);
 						
 						res.statusCode = 302;
-						res.setHeader('Location', `/`);
-						res.setHeader('Cache-Control', 'no-cache, no-store');
+						res.setHeader("Location", `/`);
+						res.setHeader("Cache-Control", "no-cache, no-store");
 						res.end();
 					} else {
-						res.end('Error getting access token: ' + util.inspect(err));
+						res.end("Error getting access token: " + util.inspect(err));
 					}
 				}
 			)
 		} else {
-			res.end('Token does not match');
+			res.end("Token does not match");
 		}
 	} else {
-		res.end('Invalid session');
+		res.end("Invalid session");
 	}
 
 }

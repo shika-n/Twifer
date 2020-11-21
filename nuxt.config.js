@@ -90,6 +90,7 @@ export default {
 
     { path: '/api/tags/fetch_all', handler: '~/api/tags/fetch_all.js'},
 
-    { path: '/api/session/clean_up', handler: '~/api/session/clean_up.js' }
+    { path: '/api/session/clean_up', handler: '~/api/session/clean_up.js' },
+    { path: '/api/session/get_status', handler: '~/api/session/get_status.js' }
   ]
 }
