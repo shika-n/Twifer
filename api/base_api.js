@@ -62,11 +62,12 @@ export default function (req, res, next) {
 		// at this point, `body` has the entire request body stored in it as a string
 
 		if (body.length > 0) {
-			req.body = body;
+			req.body = JSON.parse(body); // body params
 		}
 
+		console.log(req.url);
 		req.pathName = urlUtil.parse(req.url, true).pathname;
-		req.params = urlUtil.parse(req.url, true).query;
+		req.params = urlUtil.parse(req.url, true).query; // url params
 		req.ip = requestIp.getClientIp(req);
 		
 		if (req.headers.cookie !== undefined) {
@@ -78,7 +79,7 @@ export default function (req, res, next) {
 		req.oAuthConsumer = oAuthConsumer;
 
 		Sessions.checkSession(req, res).then((value) => {
-			if (value == 1) {
+			if (value === 1) {
 				next();
 			}
 		}).catch((err) => {

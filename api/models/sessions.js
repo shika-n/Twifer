@@ -7,6 +7,7 @@ const ALWAYS_ALLOW_PATHS = [
 	"/session/get_status",
 ]
 const GUEST_ONLY_PATHS = [
+	"/",
 	"/twitter/auth",
 	"/twitter/callback",
 ]
@@ -21,7 +22,7 @@ class Sessions {
 			sessionId: sessionId
 		}).toArray();
 
-		if (result.length == 1 && result[0].ip == ip) {
+		if (result.length === 1 && result[0].ip === ip) {
 			const session = result[0];
 
 			if (Date.now() - session.date > SESSION_LIFETIME) {
@@ -34,12 +35,12 @@ class Sessions {
 
 			return result[0];
 		} else {
-			if (result.length == 1) {
+			if (result.length === 1) {
 				console.log("IP does not match. Returning null.");
 			} else {
 				const allSessions = await this.collection(db).find({}).toArray();
-				console.log("All Sessions: " + util.inspect(allSessions));
 
+				console.log(sessionId);
 				console.log(`There are ${result.length} sessionIds found. Returning null.`);
 			}
 
@@ -111,7 +112,7 @@ class Sessions {
 
 	static async checkSession(req, res) {
 		const newSessionId = crypto.createHash("sha256").update(`${req.ip}-${Date.now()}`).digest("hex");
-		const cookieExist = req.cookies !== undefined && req.cookies.sessionId !== undefined && req.cookies.sessionId != "";
+		const cookieExist = req.cookies !== undefined && req.cookies.sessionId !== undefined && req.cookies.sessionId !== "";
 
 		let session = null;
 		if (cookieExist) {
@@ -119,11 +120,14 @@ class Sessions {
 		}
 
 		let isGuest = true;
-		if (session != null) {
-			await this.renewToken(req.db, session, newSessionId);
-			this.setCookie(res, newSessionId);
+		if (session !== null) {
+			if (req.body === undefined || req.body.dontRenew === undefined || req.body.dontRenew !== "true") {
+				console.log("renewed");
+				await this.renewToken(req.db, session, newSessionId);
+				this.setCookie(res, newSessionId);
+			}
 
-			if (session.accessToken != undefined && session.accessSecret != undefined) {
+			if (session.accessToken !== undefined && session.accessSecret !== undefined) {
 				isGuest = false;
 			}
 		} else {
@@ -140,11 +144,12 @@ class Sessions {
 				throw "Unauthorized";
 			}
 		} else {
+			console.log(req.pathName);
 			const isGuestOnly = GUEST_ONLY_PATHS.indexOf(req.pathName) > -1;
 
 			if (isGuestOnly) {
 				res.statusCode = 302;
-				res.setHeader("Location", `/`);
+				res.setHeader("Location", "/dashboard");
 				res.setHeader("Cache-Control", "no-cache, no-store");
 				res.end();
 				return 0;

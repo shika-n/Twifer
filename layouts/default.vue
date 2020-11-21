@@ -1,58 +1,18 @@
 <template>
   <v-app>
     <v-app-bar :clipped-left="true" fixed app>
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <v-btn
-        v-if="!isSmallDevice()"
-        icon
-        @click.stop="drawerShrinked = !drawerShrinked"
-      >
-        <v-icon v-if="drawer">
-          mdi-{{ `chevron-${drawerShrinked ? "right" : "left"}` }}
-        </v-icon>
-      </v-btn>
       <v-toolbar-title>
         <strong class="primary--text">
           Twifer
         </strong>
       </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-switch
-        v-model="$vuetify.theme.dark"
-        :label="`Dark Mode`"
-        :color="`accent`"
-      ></v-switch>
+      <v-btn :color="`primary`" href="api/twitter/auth">
+        Login with Twitter
+      </v-btn>
     </v-app-bar>
-    <v-navigation-drawer
-      v-model="drawer"
-      :mini-variant="drawerShrinked && !isSmallDevice()"
-      :clipped="true"
-      fixed
-      app
-    >
-      <v-list>
-        <v-list-item
-          v-for="item in drawerItems"
-          :key="item.text"
-          :to="item.to"
-          router
-        >
-          <v-list-item-action>
-            <v-icon :color="`accent`">{{ item.icon }}</v-icon>
-          </v-list-item-action>
-          <v-list-item-content>
-            {{ item.text }}
-          </v-list-item-content>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
     <v-main>
-      <v-container>
-        <v-btn v-if="loggedIn">
-          {{ loggedIn }}
-        </v-btn>
-        <nuxt />
-      </v-container>
+      <nuxt />
     </v-main>
   </v-app>
 </template>
@@ -65,80 +25,6 @@ html {
 
 <script>
 export default {
-  data() {
-    this.isLoggedIn();
-    return {
-      drawer: false,
-      drawerShrinked: true,
-      drawerItems: [
-        {
-          icon: "mdi-home",
-          text: "Home",
-          to: "/",
-        },
-        {
-          icon: "mdi-heart",
-          text: "Favorites",
-          to: "/favorites",
-        },
-        {
-          icon: "mdi-account-arrow-right",
-          text: "Following",
-          to: "/following",
-        },
-        {
-          icon: "mdi-account-arrow-left",
-          text: "Followers",
-          to: "/followers",
-        },
-        {
-          icon: "mdi-code-tags",
-          text: "Dev",
-          to: "/color_test",
-        },
-      ],
-      loggedIn: false,
-    };
-  },
-  methods: {
-    isSmallDevice() {
-      return (
-        this.$vuetify.breakpoint.md ||
-        this.$vuetify.breakpoint.sm ||
-        this.$vuetify.breakpoint.xs
-      );
-    },
-    async isLoggedIn() {
-      const status = await this.$axios.$get("api/session/get_status");
-      this.loggedIn = status;
-    },
-  },
+  methods: {},
 };
 </script>
-
-<!--
-<v-dialog v-model="notAuth" persistent width="400">
-  <v-card>
-    <v-card-title>
-      Login with Twitter
-    </v-card-title>
-    <v-card-text>
-      Allow this app to access your account to track favorites, following,
-      and followers.
-    </v-card-text>
-    <v-card-actions>
-      <v-container>
-        <v-row justify="end">
-          <v-btn
-            :color="`light-blue lighten-2`"
-            href="api/twitter/auth"
-            dark
-          >
-            Authenticate
-          </v-btn>
-        </v-row>
-      </v-container>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
--->

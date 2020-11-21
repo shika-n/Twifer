@@ -4,7 +4,7 @@ const Sessions = require("../models/sessions");
 export default async function (req, res, next) {
 	const session = await Sessions.find(req.db, req.newSessionId, req.ip);
 	
-	if (session != null) {
+	if (session !== null) {
 		const requestToken = req.params.oauth_token;
 		const accessVerifier = req.params.oauth_verifier;
 
